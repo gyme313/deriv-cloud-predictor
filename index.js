@@ -1,7 +1,19 @@
 const https = require('https');
 
 const MAX_CANDLES = 60;
-const URL = `https://deriv.com{MAX_CANDLES}&style=candles&granularity=60`;
+// Target endpoint parameters
+const targetPath = `/api/v1/ticks_history?ticks_history=1HZ10V&end=latest&count=${MAX_CANDLES}&style=candles&granularity=60`;
+
+// 💡 FIX: Cloaking configurations to mimic an authentic Google Chrome browser footprint
+const options = {
+    hostname: '://deriv.com',
+    path: targetPath,
+    method: 'GET',
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json'
+    }
+};
 
 function calculateEMA(data, period) {
     let ema = []; if (data.length < period) return ema;
@@ -42,9 +54,10 @@ function calculateADX(candles, period = 14) {
     return adxResult;
 }
 
-console.log("Connecting securely via GitHub Enterprise Cloud Architecture...");
+console.log("Connecting securely via Cloaked Browser Engine Setup...");
 
-https.get(URL, (res) => {
+// Fetch using our safe options header parameters configuration
+https.get(options, (res) => {
     let rawData = '';
     res.on('data', (chunk) => { rawData += chunk; });
     res.on('end', () => {
@@ -87,7 +100,7 @@ https.get(URL, (res) => {
                 console.log(` FINAL SIGNAL : ${signal}`);
                 console.log(`==========================================\n`);
             } else {
-                console.log("⚠️ API responded, but market data structure was empty.");
+                console.log("⚠️ API responded, but market data structure was empty. Server blocked parsing.");
             }
         } catch (e) {
             console.log("❌ Server Error: Data packet formatting anomaly.");
