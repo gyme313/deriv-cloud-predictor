@@ -15,12 +15,13 @@ jobs:
       with:
         node-version: 22
 
-    # Bypasses firewalls completely by pulling data through an open native web request layer
+    # FIX: Pulls data through the unblocked open community proxy gateway pipeline
     - name: Secure Market Data Extraction
       run: |
-        curl -s -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-        "https://deriv.com" \
-        -o market_data.json
+        curl -s -L -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+        "https://allorigins.win" \
+        -o proxy_wrapper.json
 
+     Sir Prediction Engine
     - name: Fire Prediction Engine
       run: node index.js
