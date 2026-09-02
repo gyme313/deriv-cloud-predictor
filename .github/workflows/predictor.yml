@@ -1,7 +1,7 @@
 name: Run Cloud Signal Predictor
 
 on:
-  workflow_dispatch: # This adds a manual "Play" button to your interface
+  workflow_dispatch:
 
 jobs:
   execute-engine:
@@ -14,6 +14,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
+
+    # FIX: Explicitly downloads the required network connection package inside the cloud runner
+    - name: Install Secure Network Packages
+      run: npm install ws
 
     - name: Fire Prediction Engine
       run: node index.js
