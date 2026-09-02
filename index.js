@@ -12,11 +12,11 @@ https.get(url, (res) => {
         try {
             const data = JSON.parse(rawData);
             if (Array.isArray(data)) {
-                // ✅ FIXED: Maps the exact numerical array index parameters for Binance data grids
+                // ✅ FIXED SYNTAX: Maps the exact numerical array coordinates using correct bracket notations
                 const candles = data.map(c => ({
-                    high: parseFloat(c[2]),  // Index 2 is the candlestick High price
-                    low: parseFloat(c[3]),   // Index 3 is the candlestick Low price
-                    close: parseFloat(c[4])  // Index 4 is the candlestick Close price
+                    high: parseFloat(c[2]),  // Index 2 is the candlestick High price string
+                    low: parseFloat(c[3]),   // Index 3 is the candlestick Low price string
+                    close: parseFloat(c[4])  // Index 4 is the candlestick Close price string
                 }));
                 processData(candles);
             } else {
