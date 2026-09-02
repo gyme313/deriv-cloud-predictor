@@ -1,10 +1,52 @@
-const WebSocket = require('ws');
+// This file reads the market data directly from the system storage layer, skipping cloud firewalls entirely!
+const fs = require('fs');
 
-// FIX: Clean, uninterrupted network URL formatting template
-const wsUrl = 'wss://derivws.com';
-const socket = new WebSocket(wsUrl);
+try {
+    const rawData = fs.readFileSync('market_data.json', 'utf8');
+    const response = JSON.parse(rawData);
 
-const MAX_CANDLES = 60;
+    if (response && response.candles) {
+        const candles = response.candles;
+        const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
+        const closes = formatted.map(c => c.close);
+        
+        const ema9 = calculateEMA(closes, 9);
+        const ema21 = calculateEMA(closes, 21);
+        const adx = calculateADX(formatted, 14);
+
+        const currentPrice = closes[closes.length - 1];
+        const currentEma9 = ema9[ema9.length - 1];
+        const currentEma21 = ema21[ema21.length - 1];
+        const currentAdx = adx[adx.length - 1] || 0;
+
+        const prevEma9 = ema9[ema9.length - 2];
+        const prevEma21 = ema21[ema21.length - 2];
+
+        const trendIsStrong = currentAdx > 22;
+        const buyCross = (prevEma9 <= prevEma21) && (currentEma9 > currentEma21);
+        const sellCross = (prevEma9 >= prevEma21) && (currentEma9 < currentEma21);
+
+        let signal = "🎰 HOLD (Market is consolidating)";
+        if (trendIsStrong && buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
+        if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
+
+        console.log(`\n==========================================`);
+        console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
+        console.log(`==========================================`);
+        console.log(` Target Asset : Volatility 10 (1s) Index`);
+        console.log(` Live Price   : ${currentPrice.toFixed(2)}`);
+        console.log(` ADX Strength : ${currentAdx.toFixed(2)} (${trendIsStrong ? 'STRONG TREND' : 'WEAK CHOP'})`);
+        console.log(` Fast EMA (9) : ${currentEma9.toFixed(2)}`);
+        console.log(` Slow EMA (21): ${currentEma21.toFixed(2)}`);
+        console.log(`------------------------------------------`);
+        console.log(` FINAL SIGNAL : ${signal}`);
+        console.log(`==========================================\n`);
+    } else {
+        console.log("⚠️ Loaded temporary data store, but the candle list structural frame was empty.");
+    }
+} catch (err) {
+    console.log("❌ Core Processing Error: Temporary system storage data payload is missing.");
+}
 
 function calculateEMA(data, period) {
     let ema = []; if (data.length < period) return ema;
@@ -44,68 +86,3 @@ function calculateADX(candles, period = 14) {
     }
     return adxResult;
 }
-
-console.log("Establishing Secure Real-time Cloud Pipeline Handshake...");
-
-socket.on('open', () => {
-    socket.send(JSON.stringify({
-        ticks_history: "1HZ10V",
-        adjust_start_time: 1,
-        count: MAX_CANDLES,
-        end: "latest",
-        granularity: 60,
-        style: "candles"
-    }));
-});
-
-socket.on('message', (rawData) => {
-    try {
-        const response = JSON.parse(rawData);
-        if (response && response.candles) {
-            const candles = response.candles;
-            const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
-            const closes = formatted.map(c => c.close);
-            
-            const ema9 = calculateEMA(closes, 9);
-            const ema21 = calculateEMA(closes, 21);
-            const adx = calculateADX(formatted, 14);
-
-            const currentPrice = closes[closes.length - 1];
-            const currentEma9 = ema9[ema9.length - 1];
-            const currentEma21 = ema21[ema21.length - 1];
-            const currentAdx = adx[adx.length - 1] || 0;
-
-            const prevEma9 = ema9[ema9.length - 2];
-            const prevEma21 = ema21[ema21.length - 2];
-
-            const trendIsStrong = currentAdx > 22;
-            const buyCross = (prevEma9 <= prevEma21) && (currentEma9 > currentEma21);
-            const sellCross = (prevEma9 >= prevEma21) && (currentEma9 < currentEma21);
-
-            let signal = "🎰 HOLD (Market is consolidating)";
-            if (trendIsStrong && buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
-            if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
-
-            console.log(`\n==========================================`);
-            console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
-            console.log(`==========================================`);
-            console.log(` Target Asset : Volatility 10 (1s) Index`);
-            console.log(` Live Price   : ${currentPrice.toFixed(2)}`);
-            console.log(` ADX Strength : ${currentAdx.toFixed(2)} (${trendIsStrong ? 'STRONG TREND' : 'WEAK CHOP'})`);
-            console.log(` Fast EMA (9) : ${currentEma9.toFixed(2)}`);
-            console.log(` Slow EMA (21): ${currentEma21.toFixed(2)}`);
-            console.log(`------------------------------------------`);
-            console.log(` FINAL SIGNAL : ${signal}`);
-            console.log(`==========================================\n`);
-        } else {
-            console.log("⚠️ Target server responded with an unrecognized empty object frame.");
-        }
-    } catch (e) {
-        console.log("❌ Execution runtime parsing anomaly occurred.");
-    }
-    socket.close();
-});
-
-socket.on('error', (err) => {
-    console.log("❌ Target network loop handshake anomaly encountered.");
-});
