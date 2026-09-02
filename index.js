@@ -1,19 +1,10 @@
-const https = require('https');
+const WebSocket = require('ws');
+
+// Official stable connection endpoint routing
+const wsUrl = `wss://://derivws.com`;
+const socket = new WebSocket(wsUrl);
 
 const MAX_CANDLES = 60;
-// Target endpoint parameters
-const targetPath = `/api/v1/ticks_history?ticks_history=1HZ10V&end=latest&count=${MAX_CANDLES}&style=candles&granularity=60`;
-
-// 💡 FIX: Cloaking configurations to mimic an authentic Google Chrome browser footprint
-const options = {
-    hostname: '://deriv.com',
-    path: targetPath,
-    method: 'GET',
-    headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json'
-    }
-};
 
 function calculateEMA(data, period) {
     let ema = []; if (data.length < period) return ema;
@@ -54,58 +45,69 @@ function calculateADX(candles, period = 14) {
     return adxResult;
 }
 
-console.log("Connecting securely via Cloaked Browser Engine Setup...");
+console.log("Establishing Secure Real-time Cloud Pipeline Handshake...");
 
-// Fetch using our safe options header parameters configuration
-https.get(options, (res) => {
-    let rawData = '';
-    res.on('data', (chunk) => { rawData += chunk; });
-    res.on('end', () => {
-        try {
-            const response = JSON.parse(rawData);
-            if (response && response.candles) {
-                const candles = response.candles;
-                const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
-                const closes = formatted.map(c => c.close);
-                
-                const ema9 = calculateEMA(closes, 9);
-                const ema21 = calculateEMA(closes, 21);
-                const adx = calculateADX(formatted, 14);
+socket.on('open', () => {
+    // Request a data snapshot through the unblocked WebSocket tunnel channel
+    socket.send(JSON.stringify({
+        ticks_history: "1HZ10V",
+        adjust_start_time: 1,
+        count: MAX_CANDLES,
+        end: "latest",
+        granularity: 60,
+        style: "candles"
+    }));
+});
 
-                const currentPrice = closes[closes.length - 1];
-                const currentEma9 = ema9[ema9.length - 1];
-                const currentEma21 = ema21[ema21.length - 1];
-                const currentAdx = adx[adx.length - 1] || 0;
+socket.on('message', (rawData) => {
+    try {
+        const response = JSON.parse(rawData);
+        if (response && response.candles) {
+            const candles = response.candles;
+            const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
+            const closes = formatted.map(c => c.close);
+            
+            const ema9 = calculateEMA(closes, 9);
+            const ema21 = calculateEMA(closes, 21);
+            const adx = calculateADX(formatted, 14);
 
-                const prevEma9 = ema9[ema9.length - 2];
-                const prevEma21 = ema21[ema21.length - 2];
+            const currentPrice = closes[closes.length - 1];
+            const currentEma9 = ema9[ema9.length - 1];
+            const currentEma21 = ema21[ema21.length - 1];
+            const currentAdx = adx[adx.length - 1] || 0;
 
-                const trendIsStrong = currentAdx > 22;
-                const buyCross = (prevEma9 <= prevEma21) && (currentEma9 > currentEma21);
-                const sellCross = (prevEma9 >= prevEma21) && (currentEma9 < currentEma21);
+            const prevEma9 = ema9[ema9.length - 2];
+            const prevEma21 = ema21[ema21.length - 2];
 
-                let signal = "🎰 HOLD (Market is consolidating)";
-                if (trendIsStrong && buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
-                if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
+            const trendIsStrong = currentAdx > 22;
+            const buyCross = (prevEma9 <= prevEma21) && (currentEma9 > currentEma21);
+            const sellCross = (prevEma9 >= prevEma21) && (currentEma9 < currentEma21);
 
-                console.log(`\n==========================================`);
-                console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
-                console.log(`==========================================`);
-                console.log(` Target Asset : Volatility 10 (1s) Index`);
-                console.log(` Live Price   : ${currentPrice.toFixed(2)}`);
-                console.log(` ADX Strength : ${currentAdx.toFixed(2)} (${trendIsStrong ? 'STRONG TREND' : 'WEAK CHOP'})`);
-                console.log(` Fast EMA (9) : ${currentEma9.toFixed(2)}`);
-                console.log(` Slow EMA (21): ${currentEma21.toFixed(2)}`);
-                console.log(`------------------------------------------`);
-                console.log(` FINAL SIGNAL : ${signal}`);
-                console.log(`==========================================\n`);
-            } else {
-                console.log("⚠️ API responded, but market data structure was empty. Server blocked parsing.");
-            }
-        } catch (e) {
-            console.log("❌ Server Error: Data packet formatting anomaly.");
+            let signal = "🎰 HOLD (Market is consolidating)";
+            if (trendIsStrong && buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
+            if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
+
+            console.log(`\n==========================================`);
+            console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
+            console.log(`==========================================`);
+            console.log(` Target Asset : Volatility 10 (1s) Index`);
+            console.log(` Live Price   : ${currentPrice.toFixed(2)}`);
+            console.log(` ADX Strength : ${currentAdx.toFixed(2)} (${trendIsStrong ? 'STRONG TREND' : 'WEAK CHOP'})`);
+            console.log(` Fast EMA (9) : ${currentEma9.toFixed(2)}`);
+            console.log(` Slow EMA (21): ${currentEma21.toFixed(2)}`);
+            console.log(`------------------------------------------`);
+            console.log(` FINAL SIGNAL : ${signal}`);
+            console.log(`==========================================\n`);
+        } else {
+            console.log("⚠️ Target server responded with an unrecognized empty object frame.");
         }
-    });
-}).on('error', (err) => {
-    console.log("❌ Outbound Connection Blocked inside cloud environment.");
+    } catch (e) {
+        console.log("❌ Execution runtime parsing anomaly occurred.");
+    }
+    // Clean close out of the batch tracking thread task
+    socket.close();
+});
+
+socket.on('error', (err) => {
+    console.log("❌ Target network loop handshake anomaly encountered.");
 });
