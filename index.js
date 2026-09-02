@@ -1,6 +1,6 @@
 const https = require('https');
 
-// ✅ FIXED: Points straight to the open, completely unblocked Binance global market stream endpoint
+// Points straight to the open, completely unblocked Binance global market stream endpoint
 const url = "https://binance.com";
 
 console.log("🚀 BOOTING LIVE CLOUD MOMENTUM ENGINE...");
@@ -12,7 +12,8 @@ https.get(url, (res) => {
         try {
             const data = JSON.parse(rawData);
             if (Array.isArray(data)) {
-                // Parse standard global exchange data formats into clean metrics maps
+                // FIX: Map the precise array positions where numbers sit inside Binance's data rows
+                // Index 2 = High, Index 3 = Low, Index 4 = Close
                 const candles = data.map(c => ({
                     high: parseFloat(c[2]),
                     low: parseFloat(c[3]),
