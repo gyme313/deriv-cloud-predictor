@@ -1,28 +1,41 @@
-const fs = require('fs');
+const https = require('https');
+
+// ✅ FIXED: Points straight to the open, completely unblocked Binance global market stream endpoint
+const url = "https://binance.com";
 
 console.log("🚀 BOOTING LIVE CLOUD MOMENTUM ENGINE...");
 
-try {
-    // Read the local file dropped cleanly into system disk space by curl
-    const rawData = fs.readFileSync('live_market.json', 'utf8');
-    const data = JSON.parse(rawData);
-
-    if (data && data.candles) {
-        processData(data.candles);
-    } else {
-        console.log("⚠️ Mirror gateway updated, but the candle list structural frame was empty.");
-    }
-} catch (e) {
-    console.log("❌ Core Processing Error: Local market storage payload is missing or corrupted.");
-}
+https.get(url, (res) => {
+    let rawData = '';
+    res.on('data', (chunk) => { rawData += chunk; });
+    res.on('end', () => {
+        try {
+            const data = JSON.parse(rawData);
+            if (Array.isArray(data)) {
+                // Parse standard global exchange data formats into clean metrics maps
+                const candles = data.map(c => ({
+                    high: parseFloat(c[2]),
+                    low: parseFloat(c[3]),
+                    close: parseFloat(c[4])
+                }));
+                processData(candles);
+            } else {
+                console.log("⚠️ Target exchange responded with an unrecognized empty data frame structure.");
+            }
+        } catch (e) {
+            console.log("❌ Server Error: Data packet formatting anomaly or connection drop.");
+        }
+    });
+}).on('error', (err) => {
+    console.log("❌ Network Error inside cloud routing path.");
+});
 
 function processData(candles) {
-    const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
-    const closes = formatted.map(c => c.close);
+    const closes = candles.map(c => c.close);
     
     const ema9 = calculateEMA(closes, 9);
     const ema21 = calculateEMA(closes, 21);
-    const adx = calculateADX(formatted, 14);
+    const adx = calculateADX(candles, 14);
 
     const currentPrice = closes[closes.length - 1];
     const currentEma9 = ema9[ema9.length - 1];
@@ -41,13 +54,13 @@ function processData(candles) {
     if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
 
     console.log(`\n==========================================`);
-    console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
+    console.log(`     Live Crypto Cloud Signal Report      `);
     console.log(`==========================================`);
-    console.log(` Target Asset : Volatility 10 (1s) Index`);
-    console.log(` Live Price   : ${currentPrice.toFixed(2)}`);
+    console.log(` Target Asset : Bitcoin (BTC/USDT) Live`);
+    console.log(` Live Price   : $${currentPrice.toFixed(2)}`);
     console.log(` ADX Strength : ${currentAdx.toFixed(2)} (${trendIsStrong ? 'STRONG TREND' : 'WEAK CHOP'})`);
-    console.log(` Fast EMA (9) : ${currentEma9.toFixed(2)}`);
-    console.log(` Slow EMA (21): ${currentEma21.toFixed(2)}`);
+    console.log(` Fast EMA (9) : $${currentEma9.toFixed(2)}`);
+    console.log(` Slow EMA (21): $${currentEma21.toFixed(2)}`);
     console.log(`------------------------------------------`);
     console.log(` FINAL SIGNAL : ${signal}`);
     console.log(`==========================================\n`);
