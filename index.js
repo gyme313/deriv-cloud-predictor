@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 
-// Official stable connection endpoint routing
-const wsUrl = `wss://://derivws.com`;
+// FIX: Clean, uninterrupted network URL formatting template
+const wsUrl = 'wss://://derivws.com';
 const socket = new WebSocket(wsUrl);
 
 const MAX_CANDLES = 60;
@@ -48,7 +48,6 @@ function calculateADX(candles, period = 14) {
 console.log("Establishing Secure Real-time Cloud Pipeline Handshake...");
 
 socket.on('open', () => {
-    // Request a data snapshot through the unblocked WebSocket tunnel channel
     socket.send(JSON.stringify({
         ticks_history: "1HZ10V",
         adjust_start_time: 1,
@@ -104,7 +103,6 @@ socket.on('message', (rawData) => {
     } catch (e) {
         console.log("❌ Execution runtime parsing anomaly occurred.");
     }
-    // Clean close out of the batch tracking thread task
     socket.close();
 });
 
