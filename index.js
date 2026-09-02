@@ -12,12 +12,14 @@ https.get(url, (res) => {
         try {
             const data = JSON.parse(rawData);
             if (Array.isArray(data)) {
-                // ✅ FIXED SYNTAX: Maps the exact numerical array coordinates using correct bracket notations
-                const candles = data.map(c => ({
-                    high: parseFloat(c[2]),  // Index 2 is the candlestick High price string
-                    low: parseFloat(c[3]),   // Index 3 is the candlestick Low price string
-                    close: parseFloat(c[4])  // Index 4 is the candlestick Close price string
-                }));
+                // ✅ FIXED: Maps the variables cleanly by referencing their indices using explicit names
+                const candles = data.map(function(candleArray) {
+                    return {
+                        high: parseFloat(candleArray.at(2)),  // High Price sitting at position index 2
+                        low: parseFloat(candleArray.at(3)),   // Low Price sitting at position index 3
+                        close: parseFloat(candleArray.at(4))  // Close Price sitting at position index 4
+                    };
+                });
                 processData(candles);
             } else {
                 console.log("⚠️ Target exchange responded with an unrecognized empty data frame structure.");
