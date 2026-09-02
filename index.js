@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 
 // FIX: Clean, uninterrupted network URL formatting template
-const wsUrl = 'wss://://derivws.com';
+const wsUrl = 'wss://derivws.com';
 const socket = new WebSocket(wsUrl);
 
 const MAX_CANDLES = 60;
