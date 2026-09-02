@@ -1,31 +1,20 @@
-const https = require('https');
-
-// The live market data target URL
-const target = "https://deriv.com";
-
-// ✅ FIXED: Routing the request through a public raw mirror bypass channel
-const targetUrl = `https://allorigins.win{encodeURIComponent(target)}`;
+const fs = require('fs');
 
 console.log("🚀 BOOTING LIVE CLOUD MOMENTUM ENGINE...");
 
-https.get(targetUrl, (res) => {
-    let rawData = '';
-    res.on('data', (chunk) => { rawData += chunk; });
-    res.on('end', () => {
-        try {
-            const data = JSON.parse(rawData);
-            if (data && data.candles) {
-                processData(data.candles);
-            } else {
-                console.log("⚠️ Mirror gateway updated, but data payload format was unexpected.");
-            }
-        } catch (e) {
-            console.log("❌ Server Error: Mirror connection drop or invalid data package parsing.");
-        }
-    });
-}).on('error', (err) => {
-    console.log("❌ Network Error inside cloud routing path.");
-});
+try {
+    // Read the local file dropped cleanly into system disk space by curl
+    const rawData = fs.readFileSync('live_market.json', 'utf8');
+    const data = JSON.parse(rawData);
+
+    if (data && data.candles) {
+        processData(data.candles);
+    } else {
+        console.log("⚠️ Mirror gateway updated, but the candle list structural frame was empty.");
+    }
+} catch (e) {
+    console.log("❌ Core Processing Error: Local market storage payload is missing or corrupted.");
+}
 
 function processData(candles) {
     const formatted = candles.map(c => ({ high: parseFloat(c.high), low: parseFloat(c.low), close: parseFloat(c.close) }));
@@ -48,8 +37,8 @@ function processData(candles) {
     const sellCross = (prevEma9 >= prevEma21) && (currentEma9 < currentEma21);
 
     let signal = "🎰 HOLD (Market trend structure is consolidating)";
-    if (trendIsStrong & buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
-    if (trendIsStrong & sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
+    if (trendIsStrong && buyCross) signal = "🚀 BUY SIGNAL TRIGGERED";
+    if (trendIsStrong && sellCross) signal = "📉 SELL SIGNAL TRIGGERED";
 
     console.log(`\n==========================================`);
     console.log(`  Volatility 10 (1s) Cloud Signal Report  `);
