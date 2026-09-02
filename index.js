@@ -1,9 +1,12 @@
-// This file reads the market data directly from the system storage layer, skipping cloud firewalls entirely!
 const fs = require('fs');
 
 try {
-    const rawData = fs.readFileSync('market_data.json', 'utf8');
-    const response = JSON.parse(rawData);
+    // Read the wrapper file dropped by our system workflow
+    const rawWrapper = fs.readFileSync('proxy_wrapper.json', 'utf8');
+    const wrapperJSON = JSON.parse(rawWrapper);
+    
+    // Unpack the real market data from the proxy envelope
+    const response = JSON.parse(wrapperJSON.contents);
 
     if (response && response.candles) {
         const candles = response.candles;
@@ -42,7 +45,7 @@ try {
         console.log(` FINAL SIGNAL : ${signal}`);
         console.log(`==========================================\n`);
     } else {
-        console.log("⚠️ Loaded temporary data store, but the candle list structural frame was empty.");
+        console.log("⚠️ Proxy network load completed, but data matrix frames were invalid.");
     }
 } catch (err) {
     console.log("❌ Core Processing Error: Temporary system storage data payload is missing.");
