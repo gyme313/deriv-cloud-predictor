@@ -15,13 +15,5 @@ jobs:
       with:
         node-version: 22
 
-    # FIX: Pulls data through the unblocked open community proxy gateway pipeline
-    - name: Secure Market Data Extraction
-      run: |
-        curl -s -L -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-        "https://allorigins.win" \
-        -o proxy_wrapper.json
-
-     Sir Prediction Engine
     - name: Fire Prediction Engine
       run: node index.js
