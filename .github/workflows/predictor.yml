@@ -1,0 +1,19 @@
+name: Run Cloud Signal Predictor
+
+on:
+  workflow_dispatch: # This adds a manual "Play" button to your interface
+
+jobs:
+  execute-engine:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Code Repository
+      uses: actions/checkout@v4
+
+    - name: Instantiate Node Runtime
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Fire Prediction Engine
+      run: node index.js
